@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <title>VendaTudo</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdaaaaaaaaaaaai/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+  </head>
+
+  <body style="background-image: url('https://web.vendatudo.app/img/bg_dots-min.93139af1.png')">
+
+    <div id="app">
+        <div class="">
+            <div v-if="data" class="row justify-content-md-center " style="justify-content: center;">
+
+                <div class="teste">
+                <div class="col-md-8 col-12 " >
+                    <img :src="publicUrl + data.principal_image" alt="" style="width:100%" >
+                </div>
+                </div>
+                <div class="container" style="display: flex;justify-content: center;">
+                    <div v-if="onlyEmail" class="col-md-8 col-12">
+
+                        <pre wrap style="margin: 20px;font-size: 20px;text-align: center;margin-top: 0px;font-family: 'Roboto', sans-serif;">{{data.description}}</pre>
+
+                        <v-layout>  
+                            
+                            <v-container>
+                            <v-row>
+                            <v-text-field outlined
+                                class="col-md-6 col-sm-12"
+                                v-model="prospecto.email"
+                                placeholder="Email"
+                            ></v-text-field>
+
+                            <v-btn @click="responder"
+                                :disabled="submited"
+                                :loading="inRequest"
+                                style="background-color:#d32525;color:white;font-size: 20px;font-family: 'Roboto', sans-serif;padding: 28px;"
+                                class="col-md-5 col-sm-12"
+                                v-if="data.direcionar.tipo == 'concluir'"
+                                >{{ data.direcionar.botao }}</v-btn
+                            >
+
+                            <v-btn @click="responder"
+                                :disabled="submited"
+                                :loading="inRequest"
+                                style="background-color:#d32525;color:white;font-size: 20px;font-family: 'Roboto', sans-serif;padding: 28px;"
+                                target="_BLANK"
+                                class="col-md-5 col-sm-12"
+                                v-if="data.direcionar.tipo == 'externo'"
+                                :href="data.direcionar.conteudo"
+                                >{{ data.direcionar.botao }}</v-btn
+                            >
+
+                            <v-btn @click="responder"
+                                :disabled="submited"
+                                :loading="inRequest"
+                                style="background-color:#d32525;color:white;font-size: 20px;font-family: 'Roboto', sans-serif;padding: 28px;"
+                                class="col-md-5 col-sm-12"
+                                target="_BLANK"
+                                v-if="data.direcionar.tipo == 'whatsapp'"
+                                :href="
+                                'https://api.whatsapp.com/send?phone=55' +
+                                    data.direcionar.conteudo.replace(
+                                    /[^\w\s]/gi,
+                                    ''
+                                    )
+                                "
+                                >{{ data.direcionar.botao }}</v-btn
+                            >
+
+                            </v-row>
+                          </v-container>
+
+                        </v-layout>
+
+
+                    </div>
+                    <div v-else>
+
+                        <pre wrap style="margin: 20px;font-size: 20px;text-align: center;margin-top: 0px;font-family: 'Roboto', sans-serif;">{{data.description}}</pre>
+
+                        <v-layout wrap v-if="data.hasProspecto" >
+                            <v-text-field full-width
+                                class="rounded-lg" outlined
+                                v-model="prospecto.nome"
+                                placeholder="Seu nome"
+                            ></v-text-field>
+                        </v-layout>
+                        <v-layout wrap>  
+                            <v-text-field full-width
+                                class="rounded-lg" outlined
+                                v-model="prospecto.email"
+                                placeholder="Email"
+                            ></v-text-field>
+                            </v-flex>
+                        </v-layout>
+                        <v-layout wrap>
+                            <v-text-field full-width 
+                                class="rounded-lg" outlined
+                                v-model="prospecto.telefone"
+                                placeholder="Telefone/Whatsapp"
+                                v-mask="['(##)####-####', '(##)#####-####']"
+                            ></v-text-field>
+                        </v-layout>
+
+                        <v-layout
+                            wrap
+                            v-for="item in data.questoes"
+                            v-bind:key="item.questao.id"
+                        >
+                            <v-flex md8 class="offset-md-2" sm12 xs12>
+                            <h4 class="title">{{ item.questao.titulo }}</h4>
+                            <h6 class="subtitle-1">
+                                {{ item.questao.sub_titulo }}
+                            </h6>
+                            <v-text-field 
+                                v-model="item.resposta"
+                                v-if="item.questao.tipo === 'texto'"
+                                label="Resposta"
+                            ></v-text-field>
+                            <v-text-field
+                                v-model="item.resposta"
+                                v-if="item.questao.tipo === 'valor'"
+                                v-money="money"
+                                label="Valor"
+                            ></v-text-field>
+                            <v-radio-group
+                                v-model="item.resposta"
+                                v-if="item.questao.tipo === 'multipla'"
+                                column
+                            >
+                                <v-radio
+                                v-for="alt in item.questao.alternativas"
+                                :key="alt.id"
+                                :label="alt.alternativa"
+                                :value="alt.alternativa"
+                                ></v-radio>
+                            </v-radio-group>
+                        </v-layout>
+
+                        <v-layout wrap style="text-align:center">
+                            <v-flex xs12 class="offset-md-2">
+                            <v-btn @click="responder"
+                                :disabled="submited"
+                                :loading="inRequest"
+                                style="background-color:#d32525;color:white;font-size: 20px;font-family: 'Roboto', sans-serif;padding: 28px;"
+                                class="py-7 button-font rounded-lg white--text" block
+                                v-if="data.direcionar.tipo == 'concluir'"
+                                >{{ data.direcionar.botao }}</v-btn
+                            >
+
+                            <v-btn @click="responder"
+                                :disabled="submited"
+                                :loading="inRequest"
+                                style="background-color:#d32525;color:white;font-size: 20px;font-family: 'Roboto', sans-serif;padding: 28px;"
+                                target="_BLANK"
+                                v-if="data.direcionar.tipo == 'externo'"
+                                class="py-7 button-font rounded-lg white--text" block
+                                :href="data.direcionar.conteudo"
+                                >{{ data.direcionar.botao }}</v-btn
+                            >
+
+                            <v-btn @click="responder"
+                                :disabled="submited"
+                                :loading="inRequest"
+                                style="background-color:#d32525;color:white;font-size: 20px;font-family: 'Roboto', sans-serif;padding: 28px;"
+                                class="py-7 button-font rounded-lg white--text" block
+                                target="_BLANK"
+                                v-if="data.direcionar.tipo == 'whatsapp'"
+                                :href="
+                                'https://api.whatsapp.com/send?phone=55' +
+                                    data.direcionar.conteudo.replace(
+                                    /[^\w\s]/gi,
+                                    ''
+                                    )
+                                "
+                                >{{ data.direcionar.botao }}</v-btn
+                            >
+                            </v-flex>
+                        </v-layout>
+
+                    </div>
+                </div>
+
+                <div class="teste" style="margin-bottom:-20px;">
+                <div class="col-md-8 col-12 ">
+                    <img :src="publicUrl + data.secundary_image" alt="" style="width:100%;" >
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- http://localhost:8080/data/responder/7 -->
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/v-mask/dist/v-mask.min.js"></script>  
+    <script>
+        Vue.use(VueMask.VueMaskPlugin);
+        new Vue({
+
+            el: '#app',
+            vuetify: new Vuetify(),
+            data() {
+                return {
+                    publicUrl:'https://api.vendatudo.app/storage/',
+                    data:false,
+                    prospecto: {
+                        nome: '',
+                        email: '',
+                        telefone: '',
+                    },
+                    respostas: [],
+                    inRequest:false,
+                    sessao:false,
+                    submited:false,
+                    onlyEmail:false,
+                }
+            },
+            mounted(){
+
+                fetch('https://api.vendatudo.app/api/formulario/responder/admin/afiliados-2')
+                    .then(T => T.json())
+                    .then(Response => {
+                        this.data = Response
+
+                        this.data.direcionar = JSON.parse(
+                            this.data.direcionar
+                        );
+
+                    })
+
+            },
+            methods:{
+                responder() {
+                    if (this.inRequest == false) {
+                        this.inRequest = true;
+                        if (!this.data.hasProspecto) {
+                            this.prospecto = null;
+                        }
+
+                        let formData = new FormData();
+                        formData.append('formulario_id', this.data.id);
+                        formData.append('respostas', JSON.stringify(this.respostas));
+                        formData.append('prospecto', JSON.stringify(this.prospecto));
+                        formData.append('sessao', this.sessao);
+
+                        fetch('https://api.vendatudo.app/api/formulario/envia/resposta', {
+                                method: 'POST',
+                                body: formData
+                            }
+                            )
+                            .then(response => {
+                            this.sessao = response.data;
+                            this.inRequest = false;
+                            this.submited = true;
+                            })
+                            .catch(() => {});
+                    }
+                },
+            }
+        })
+
+    </script>
+    <style>
+        .teste{
+            display: flex;
+            justify-content: center;
+            background-color: #020303;
+            width: 100vw;
+        }
+    </style>
+  </body>
+</html>
+
+
+
+
