@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>VendaTudo</title>
     <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@mdaaaaaaaaaaaai/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
   </head>
@@ -21,20 +21,20 @@
                 </div>
                 </div>
                 <div class="container" style="display: flex;justify-content: center;">
-                    <div v-if="onlyEmail" class="col-md-8 col-12">
+                    <div v-if="data.prospectoFields.length == 1 && data.prospectoFields.includes('email')" class="col-md-8 col-12">
 
                         <pre wrap style="margin: 20px;font-size: 20px;text-align: center;margin-top: 0px;font-family: 'Roboto', sans-serif;">{{data.description}}</pre>
 
                         <v-layout>  
-                            
+
                             <v-container>
                             <v-row>
                             <v-text-field outlined
-                                class="col-md-6 col-sm-12"
+                                class="col-md-6 col-sm-12" 
                                 v-model="prospecto.email"
                                 placeholder="Email"
                             ></v-text-field>
-
+                            
                             <v-btn @click="responder"
                                 :disabled="submited"
                                 :loading="inRequest"
@@ -71,26 +71,24 @@
                                 "
                                 >{{ data.direcionar.botao }}</v-btn
                             >
-
-                            </v-row>
-                          </v-container>
-
-                        </v-layout>
-
+                            
+                        </v-row>
+                      </v-container>
+                    </v-layout>
 
                     </div>
-                    <div v-else>
+                    <div class="col-md-8 col-12" v-else>
 
                         <pre wrap style="margin: 20px;font-size: 20px;text-align: center;margin-top: 0px;font-family: 'Roboto', sans-serif;">{{data.description}}</pre>
 
-                        <v-layout wrap v-if="data.hasProspecto" >
+                        <v-layout wrap v-if="data.prospectoFields.includes('name')" >
                             <v-text-field full-width
                                 class="rounded-lg" outlined
                                 v-model="prospecto.nome"
                                 placeholder="Seu nome"
                             ></v-text-field>
                         </v-layout>
-                        <v-layout wrap>  
+                        <v-layout wrap v-if="data.prospectoFields.includes('email')">  
                             <v-text-field full-width
                                 class="rounded-lg" outlined
                                 v-model="prospecto.email"
@@ -98,7 +96,7 @@
                             ></v-text-field>
                             </v-flex>
                         </v-layout>
-                        <v-layout wrap>
+                        <v-layout wrap v-if="data.prospectoFields.includes('phone')">
                             <v-text-field full-width 
                                 class="rounded-lg" outlined
                                 v-model="prospecto.telefone"
@@ -219,12 +217,11 @@
                     inRequest:false,
                     sessao:false,
                     submited:false,
-                    onlyEmail:false,
                 }
             },
             mounted(){
 
-                fetch('https://api.vendatudo.app/api/formulario/responder/admin/afiliados-2')
+                fetch('https://api.vendatudo.app/api/formulario/responder/augustoteste/super-teste-do-augusto')
                     .then(T => T.json())
                     .then(Response => {
                         this.data = Response
@@ -240,9 +237,7 @@
                 responder() {
                     if (this.inRequest == false) {
                         this.inRequest = true;
-                        if (!this.data.hasProspecto) {
-                            this.prospecto = null;
-                        }
+    
 
                         let formData = new FormData();
                         formData.append('formulario_id', this.data.id);
